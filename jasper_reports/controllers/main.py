@@ -28,12 +28,17 @@
 ##############################################################################
 
 import json
+import logging
+import datetime
 
 from odoo.addons.web.controllers import main as report
 from odoo.http import content_disposition, route, request, serialize_exception as _serialize_exception
 from werkzeug.urls import url_decode
 from odoo.tools import html_escape
 from odoo.tools.safe_eval import safe_eval, time
+
+_logger = logging.getLogger(__name__)
+
 
 class ReportController(report.ReportController):
 
@@ -77,7 +82,6 @@ class ReportController(report.ReportController):
         return super(ReportController, self).report_routes(
             reportname, docids, converter, **data)
 
-
     @route()
     def report_download(self, data, token, context=None):
         """This function is used by 'action_manager_report.js' in order to trigger the download of
@@ -94,18 +98,21 @@ class ReportController(report.ReportController):
                 converter = 'jasper'
                 extension = 'pdf'
                 pattern = '/report/jasper/'
-                    
+                _logger.info("Requested url: {}".format(url))
                 reportname = url.split(pattern)[1].split('?')[0]
 
                 docids = None
+                _logger.info("report name : {}".format(reportname))
                 if '/' in reportname:
                     reportname, docids = reportname.split('/')
 
                 if docids:
                     # Generic report:
+                    _logger.info("generating generic report")
                     response = self.report_routes(reportname, docids=docids, converter=converter, context=context)
                 else:
                     # Particular report:
+                    _logger.info("generating particular report")
                     data = dict(url_decode(url.split('?')[1]).items())  # decoding the args represented in JSON
                     if 'context' in data:
                         context, data_context = json.loads(context or '{}'), json.loads(data.pop('context'))
@@ -113,7 +120,7 @@ class ReportController(report.ReportController):
                     response = self.report_routes(reportname, converter=converter, context=context, **data)
 
                 report = request.env['ir.actions.report']._get_report_from_name(reportname)
-                filename = "%s.%s" % (report.name, extension)
+                filename = "{}_{}.{}".format(report.name, datetime.datetime.today().strftime('%Y-%m-%d'), extension)
 
                 if docids:
                     ids = [int(x) for x in docids.split(",")]
@@ -134,4 +141,3 @@ class ReportController(report.ReportController):
                 return request.make_response(html_escape(json.dumps(error)))
         else:
             return super(ReportController, self).report_download(data, token, context)
-
