@@ -1,9 +1,19 @@
 # Jasper Report
 
-[![Build Status](https://travis-ci.org/JayVora-SerpentCS/Jasperreports_odoo.svg?branch=12.0)](https://travis-ci.org/JayVora-SerpentCS/Jasperreports_odoo)
-
 This Module Gives The Features for creating Jasper Reports
 
+##### Changelog
+14.0.0.1.2 - GNR
+Improvement (with intention to print one report at a time)
+- Update Jasper Report Lib to 6.17
+- Recompile Jasper Report Server with OpenJDK11
+- Inject First Record ID into Jasper report parameters as `ID`
+- Add date into filename
+- Remove unused files  
+
+Known Bugs  
+- Unable print multiple reports via checkbox
+- Passing parameter from function causing error as no record id was sent in the context
 
 ##### [Source](https://launchpad.net/openobject-jasper-reports)
 
