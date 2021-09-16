@@ -159,6 +159,7 @@ class ReportXml(models.Model):
         cr = self.env.cr
         if not data:
             data = {}
+
         doc_records = self.model_id.browse(docids)
         report_model_name = 'report.%s' % self.report_name
         self.env.cr.execute('SELECT id, model FROM '
