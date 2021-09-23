@@ -96,7 +96,7 @@ class JasperServer:
                    '-XX:InitialHeapSize=512m',
                    '-XX:CompressedClassSpaceSize=64m',
                    '-XX:MaxMetaspaceSize=128m',
-                #    '-XX:+UseConcMarkSweepGC',   ### OpenJDK 64-Bit Server VM warning: Option UseConcMarkSweepGC was deprecated in version 9.0 and will likely be removed in a future release.
+                   #    '-XX:+UseConcMarkSweepGC',   ### OpenJDK 64-Bit Server VM warning: Option UseConcMarkSweepGC was deprecated in version 9.0 and will likely be removed in a future release.
                    'com.nantic.jasperreports.JasperServer',
                    str(self.port)]
         process = subprocess.Popen(command, env=env, cwd=cwd)
@@ -111,13 +111,13 @@ class JasperServer:
         """
         try:
             return self.proxy.Report.execute(*args)
-        except socket.error as e:
+        except (socket.error, xmlrpclib.ProtocolError) as e:
             self.start()
             for x in range(40):
                 time.sleep(1)
                 try:
                     return self.proxy.Report.execute(*args)
-                except socket.error as e:
+                except (socket.error, xmlrpclib.ProtocolError) as e:
                     self.error("EXCEPTION: %s %s" % (str(e), str(e.args)))
                     pass
                 except xmlrpclib.Fault as e:
