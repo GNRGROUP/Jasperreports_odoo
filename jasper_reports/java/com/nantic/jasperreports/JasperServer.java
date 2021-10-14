@@ -56,7 +56,7 @@ import net.sf.jasperreports.engine.export.JRRtfExporter;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
 import net.sf.jasperreports.export.SimpleWriterExporterOutput;
 import net.sf.jasperreports.engine.export.JRXlsExporter;
-// import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
+import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleXlsReportConfiguration;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
@@ -90,51 +90,51 @@ import java.math.BigDecimal;
 import java.io.InputStream;
 import java.util.Locale;
 
-
-
 public class JasperServer {
     /* Compiles the given .jrxml (inputFile) */
-    public Boolean compile( String jrxmlPath ) throws java.lang.Exception {
+    public Boolean compile(String jrxmlPath) throws java.lang.Exception {
         File jrxmlFile;
         File jasperFile;
 
         System.setProperty("jasper.reports.compiler.class", "com.nantic.jasperreports.I18nGroovyCompiler");
 
-        jrxmlFile = new File( jrxmlPath );
-        jasperFile = new File( jasperPath( jrxmlPath ) );
-        if ( (! jasperFile.exists()) || (jrxmlFile.lastModified() > jasperFile.lastModified()) ) {
-            System.out.println( "JasperServer: Compiling " + jrxmlPath ) ;
-            JasperCompileManager.compileReportToFile( jrxmlPath, jasperPath( jrxmlPath ) );
-            System.out.println( "JasperServer: Compiled.");
+        jrxmlFile = new File(jrxmlPath);
+        jasperFile = new File(jasperPath(jrxmlPath));
+        if ((!jasperFile.exists()) || (jrxmlFile.lastModified() > jasperFile.lastModified())) {
+            System.out.println("JasperServer: Compiling " + jrxmlPath);
+            JasperCompileManager.compileReportToFile(jrxmlPath, jasperPath(jrxmlPath));
+            System.out.println("JasperServer: Compiled.");
         }
         return true;
     }
 
     /* Returns path where bundle files are expected to be */
-    public String bundlePath( String jrxmlPath ) {
+    public String bundlePath(String jrxmlPath) {
         int index;
         index = jrxmlPath.lastIndexOf('.');
-        if ( index != -1 )
-            return jrxmlPath.substring( 0, index );
+        if (index != -1)
+            return jrxmlPath.substring(0, index);
         else
             return jrxmlPath;
     }
 
     /* Returns the path to the .jasper file for the given .jrxml */
-    public String jasperPath( String jrxmlPath ) {
-        return bundlePath( jrxmlPath ) + ".jasper";
+    public String jasperPath(String jrxmlPath) {
+        return bundlePath(jrxmlPath) + ".jasper";
     }
 
-    public int execute( Hashtable connectionParameters, String jrxmlPath, String outputPath, Hashtable<String, Object> parameters) throws java.lang.Exception {
+    public int execute(Hashtable connectionParameters, String jrxmlPath, String outputPath,
+            Hashtable<String, Object> parameters) throws java.lang.Exception {
         try {
-            return privateExecute( connectionParameters, jrxmlPath, outputPath, parameters );
+            return privateExecute(connectionParameters, jrxmlPath, outputPath, parameters);
         } catch (Exception exception) {
-            //exception.printStackTrace();
+            // exception.printStackTrace();
             throw exception;
         }
     }
 
-    public int privateExecute( Hashtable connectionParameters, String jrxmlPath, String outputPath, Hashtable<String, Object> parameters) throws java.lang.Exception {
+    public int privateExecute(Hashtable connectionParameters, String jrxmlPath, String outputPath,
+            Hashtable<String, Object> parameters) throws java.lang.Exception {
 
         JasperReport report = null;
         byte[] result = null;
@@ -143,113 +143,122 @@ public class JasperServer {
         int index;
 
         // Ensure report is compiled
-        compile( jrxmlPath );
+        compile(jrxmlPath);
 
-        report = (JasperReport) JRLoader.loadObjectFromFile( jasperPath( jrxmlPath ) );
+        report = (JasperReport) JRLoader.loadObjectFromFile(jasperPath(jrxmlPath));
 
         // Add SUBREPORT_DIR parameter
         index = jrxmlPath.lastIndexOf('/');
-        if ( index != -1 )
-            parameters.put( "SUBREPORT_DIR", jrxmlPath.substring( 0, index+1 ) );
+        if (index != -1)
+            parameters.put("SUBREPORT_DIR", jrxmlPath.substring(0, index + 1));
 
-        // Declare it outside the parameters loop because we'll use it when we will create the data source.
+        // Declare it outside the parameters loop because we'll use it when we will
+        // create the data source.
         Translator translator = null;
 
         // Fill in report parameters
         JRParameter[] reportParameters = report.getParameters();
-        for( int j=0; j < reportParameters.length; j++ ){
+        for (int j = 0; j < reportParameters.length; j++) {
             JRParameter jparam = reportParameters[j];
-            if ( jparam.getValueClassName().equals( "java.util.Locale" ) ) {
+            if (jparam.getValueClassName().equals("java.util.Locale")) {
                 // REPORT_LOCALE
-                if ( ! parameters.containsKey( jparam.getName() ) )
+                if (!parameters.containsKey(jparam.getName()))
                     continue;
-                String[] locales = ((String)parameters.get( jparam.getName() )).split( "_" );
+                String[] locales = ((String) parameters.get(jparam.getName())).split("_");
 
                 Locale locale;
-                if ( locales.length == 1 )
-                    locale = new Locale( locales[0] );
+                if (locales.length == 1)
+                    locale = new Locale(locales[0]);
                 else
-                    locale = new Locale( locales[0], locales[1] );
+                    locale = new Locale(locales[0], locales[1]);
 
-                parameters.put( jparam.getName(), locale );
+                parameters.put(jparam.getName(), locale);
 
                 // Initialize translation system
-                // SQL reports will need to declare the TRANSLATOR paramter for translations to work.
-                // CSV/XML based ones will not need that because we will integrate the translator
+                // SQL reports will need to declare the TRANSLATOR paramter for translations to
+                // work.
+                // CSV/XML based ones will not need that because we will integrate the
+                // translator
                 // with the CsvMultiLanguageDataSource.
-                translator = new Translator( bundlePath(jrxmlPath), locale );
-                parameters.put( "TRANSLATOR", translator );
+                translator = new Translator(bundlePath(jrxmlPath), locale);
+                parameters.put("TRANSLATOR", translator);
 
-            } else if( jparam.getValueClassName().equals( "java.lang.BigDecimal" )){
-                Object param = parameters.get( jparam.getName());
-                parameters.put( jparam.getName(), new BigDecimal( (Double) parameters.get(jparam.getName() ) ) );
+            } else if (jparam.getValueClassName().equals("java.lang.BigDecimal")) {
+                Object param = parameters.get(jparam.getName());
+                parameters.put(jparam.getName(), new BigDecimal((Double) parameters.get(jparam.getName())));
             }
         }
 
-        if ( connectionParameters.containsKey("subreports") ) {
+        if (connectionParameters.containsKey("subreports")) {
             Object[] subreports = (Object[]) connectionParameters.get("subreports");
-            for (int i = 0; i < subreports.length; i++ ) {
-                Map m = (Map)subreports[i];
+            for (int i = 0; i < subreports.length; i++) {
+                Map m = (Map) subreports[i];
 
                 // Ensure subreport is compiled
-                String jrxmlFile = (String)m.get("jrxmlFile");
-                if ( ! jrxmlFile.equals( "DATASET" ) )
-                    compile( (String)m.get("jrxmlFile") );
+                String jrxmlFile = (String) m.get("jrxmlFile");
+                if (!jrxmlFile.equals("DATASET"))
+                    compile((String) m.get("jrxmlFile"));
 
                 // Create DataSource for subreport
-                CsvMultiLanguageDataSource dataSource = new CsvMultiLanguageDataSource( (String)m.get("dataFile"), "utf-8", translator );
-                System.out.println( "JasperServer: Adding parameter '" + ( (String)m.get("parameter") ) + "' with datasource '" + ( (String)m.get("dataFile") ) + "'" );
+                CsvMultiLanguageDataSource dataSource = new CsvMultiLanguageDataSource((String) m.get("dataFile"),
+                        "utf-8", translator);
+                System.out.println("JasperServer: Adding parameter '" + ((String) m.get("parameter"))
+                        + "' with datasource '" + ((String) m.get("dataFile")) + "'");
 
-                parameters.put( (String)m.get("parameter"), dataSource );
+                parameters.put((String) m.get("parameter"), dataSource);
             }
         }
 
-        System.out.println( "JasperServer: Filling report..." );
+        System.out.println("JasperServer: Filling report...");
 
         // Fill in report
         String language;
-        if ( report.getQuery() == null )
+        if (report.getQuery() == null)
             language = "";
         else
             language = report.getQuery().getLanguage();
 
-        if( language.equalsIgnoreCase( "XPATH")  ){
+        if (language.equalsIgnoreCase("XPATH")) {
             // If available, use a CSV file because it's faster to process.
             // Otherwise we'll use an XML file.
-            if ( connectionParameters.containsKey("csv") ) {
-                CsvMultiLanguageDataSource dataSource = new CsvMultiLanguageDataSource( (String)connectionParameters.get("csv"), "utf-8", translator );
-                jasperPrint = JasperFillManager.fillReport( report, parameters, dataSource );
+            if (connectionParameters.containsKey("csv")) {
+                CsvMultiLanguageDataSource dataSource = new CsvMultiLanguageDataSource(
+                        (String) connectionParameters.get("csv"), "utf-8", translator);
+                jasperPrint = JasperFillManager.fillReport(report, parameters, dataSource);
             } else {
-                JRXmlDataSource dataSource = new JRXmlDataSource( (String)connectionParameters.get("xml"), "/data/record" );
-                dataSource.setDatePattern( "yyyy-MM-dd HH:mm:ss" );
-                dataSource.setNumberPattern( "#######0.##" );
-                dataSource.setLocale( Locale.ENGLISH );
-                jasperPrint = JasperFillManager.fillReport( report, parameters, dataSource );
+                JRXmlDataSource dataSource = new JRXmlDataSource((String) connectionParameters.get("xml"),
+                        "/data/record");
+                dataSource.setDatePattern("yyyy-MM-dd HH:mm:ss");
+                dataSource.setNumberPattern("#######0.##");
+                dataSource.setLocale(Locale.ENGLISH);
+                jasperPrint = JasperFillManager.fillReport(report, parameters, dataSource);
             }
-        } else if( language.equalsIgnoreCase( "SQL")  ) {
-            Connection connection = getConnection( connectionParameters );
-            jasperPrint = JasperFillManager.fillReport( report, parameters, connection );
+        } else if (language.equalsIgnoreCase("SQL")) {
+            Connection connection = getConnection(connectionParameters);
+            jasperPrint = JasperFillManager.fillReport(report, parameters, connection);
         } else {
             JREmptyDataSource dataSource = new JREmptyDataSource();
-            jasperPrint = JasperFillManager.fillReport( report, parameters, dataSource );
+            jasperPrint = JasperFillManager.fillReport(report, parameters, dataSource);
         }
 
         // Create output file
-        File outputFile = new File( outputPath );
+        File outputFile = new File(outputPath);
         JRAbstractExporter exporter;
 
         String output;
-        if ( connectionParameters.containsKey( "output" ) )
-            output = (String)connectionParameters.get("output");
+        if (connectionParameters.containsKey("output"))
+            output = (String) connectionParameters.get("output");
         else
             output = "pdf";
 
-        System.out.println( "JasperServer: Exporting..." );
-        if ( output.equalsIgnoreCase( "html" ) ) {
-            // exporter.setParameter(JRHtmlExporterParameter.IS_USING_IMAGES_TO_ALIGN, Boolean.FALSE);
+        System.out.println("JasperServer: Exporting...");
+        if (output.equalsIgnoreCase("html")) {
+            // exporter.setParameter(JRHtmlExporterParameter.IS_USING_IMAGES_TO_ALIGN,
+            // Boolean.FALSE);
             // exporter.setParameter(JRHtmlExporterParameter.HTML_HEADER, "");
             // exporter.setParameter(JRHtmlExporterParameter.BETWEEN_PAGES_HTML, "");
-            // exporter.setParameter(JRHtmlExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, Boolean.TRUE);
+            // exporter.setParameter(JRHtmlExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS,
+            // Boolean.TRUE);
             // exporter.setParameter(JRHtmlExporterParameter.HTML_FOOTER, "");
             exporter = new HtmlExporter();
             SimpleHtmlExporterConfiguration configuration = new SimpleHtmlExporterConfiguration();
@@ -261,16 +270,20 @@ public class JasperServer {
             exporter.setConfiguration(reportExportConfiguration);
             exporter.setConfiguration(configuration);
             exporter.setExporterOutput(new SimpleHtmlExporterOutput(outputFile));
-        } else if ( output.equalsIgnoreCase( "csv" ) ) {
+        } else if (output.equalsIgnoreCase("csv")) {
             exporter = new JRCsvExporter();
             exporter.setExporterOutput(new SimpleWriterExporterOutput(outputFile));
-        } else if ( output.equalsIgnoreCase( "xls" ) ) {
+        } else if (output.equalsIgnoreCase("xls")) {
             // exporter = new JRXlsExporter();
-            // exporter.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, Boolean.TRUE);
+            // exporter.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS,
+            // Boolean.TRUE);
             // exporter.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS,Boolean.TRUE);
-            // exporter.setParameter(JRXlsExporterParameter.MAXIMUM_ROWS_PER_SHEET, new Integer(65000));
-            // exporter.setParameter(JRXlsExporterParameter.IS_DETECT_CELL_TYPE, Boolean.TRUE);
+            // exporter.setParameter(JRXlsExporterParameter.MAXIMUM_ROWS_PER_SHEET, new
+            // Integer(65000));
+            // exporter.setParameter(JRXlsExporterParameter.IS_DETECT_CELL_TYPE,
+            // Boolean.TRUE);
             exporter = new JRXlsExporter();
+            exporter.setParameter(JRXlsExporterParameter.IS_ONE_PAGE_PER_SHEET, Boolean.TRUE);
             SimpleXlsReportConfiguration configuration = new SimpleXlsReportConfiguration();
             configuration.setRemoveEmptySpaceBetweenRows(true);
             configuration.setRemoveEmptySpaceBetweenColumns(true);
@@ -278,18 +291,20 @@ public class JasperServer {
             configuration.setDetectCellType(true);
             exporter.setConfiguration(configuration);
             exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(outputFile));
-        } else if ( output.equalsIgnoreCase( "rtf" ) ) {
+        } else if (output.equalsIgnoreCase("rtf")) {
             exporter = new JRRtfExporter();
             exporter.setExporterOutput(new SimpleWriterExporterOutput(outputFile));
-        } else if ( output.equalsIgnoreCase( "odt" ) ) {
+        } else if (output.equalsIgnoreCase("odt")) {
             exporter = new JROdtExporter();
             exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(outputFile));
-        } else if ( output.equalsIgnoreCase( "ods" ) ) {
+        } else if (output.equalsIgnoreCase("ods")) {
             exporter = new JROdsExporter();
             exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(outputFile));
-        } else if ( output.equalsIgnoreCase( "txt" ) ) {
-            // exporter.setParameter(TextReportConfiguration.getPageWidthInChars(), new Integer(80));
-            // exporter.setParameter(TextReportConfiguration.getPageHeightInChars(), new Integer(150));
+        } else if (output.equalsIgnoreCase("txt")) {
+            // exporter.setParameter(TextReportConfiguration.getPageWidthInChars(), new
+            // Integer(80));
+            // exporter.setParameter(TextReportConfiguration.getPageHeightInChars(), new
+            // Integer(150));
             exporter = new JRTextExporter();
             SimpleTextReportConfiguration configuration = new SimpleTextReportConfiguration();
             configuration.setPageWidthInChars(Integer.valueOf(80));
@@ -300,33 +315,35 @@ public class JasperServer {
             exporter = new JRPdfExporter();
             exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(outputFile));
         }
-        // exporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
+
         // exporter.setParameter(JRExporterParameter.OUTPUT_FILE, outputFile);
         exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
 
         exporter.exportReport();
-        System.out.println( "JasperServer: Exported." );
+        System.out.println("JasperServer: Exported.");
         return jasperPrint.getPages().size();
     }
 
-    public static Connection getConnection( Hashtable datasource ) throws java.lang.ClassNotFoundException, java.sql.SQLException {
+    public static Connection getConnection(Hashtable datasource)
+            throws java.lang.ClassNotFoundException, java.sql.SQLException {
         Connection connection;
         Class.forName("org.postgresql.Driver");
-        connection = DriverManager.getConnection( (String)datasource.get("dsn"), (String)datasource.get("user"),
-        (String)datasource.get("password") );
+        connection = DriverManager.getConnection((String) datasource.get("dsn"), (String) datasource.get("user"),
+                (String) datasource.get("password"));
         connection.setAutoCommit(true);
         return connection;
     }
 
-    public static void main (String [] args) {
+    public static void main(String[] args) {
         try {
             int port = 8090;
-            if ( args.length > 0 ) {
-                port = java.lang.Integer.parseInt( args[0] );
+            if (args.length > 0) {
+                port = java.lang.Integer.parseInt(args[0]);
             }
             java.net.InetAddress localhost = java.net.Inet4Address.getByName("localhost");
-            System.out.println("JasperServer: Attempting to start XML-RPC Server at " + localhost.toString() + ":" + port + "...");
-            WebServer server = new WebServer( port, localhost );
+            System.out.println(
+                    "JasperServer: Attempting to start XML-RPC Server at " + localhost.toString() + ":" + port + "...");
+            WebServer server = new WebServer(port, localhost);
             XmlRpcServer xmlRpcServer = server.getXmlRpcServer();
 
             PropertyHandlerMapping phm = new PropertyHandlerMapping();
