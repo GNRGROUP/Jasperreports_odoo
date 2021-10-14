@@ -108,7 +108,7 @@ class ReportController(report.ReportController):
 
                 if docids:
                     # Generic report:
-                    _logger.info("generating generic report")
+                    _logger.info("generating generic report docid = {}".format(docids))
                     response = self.report_routes(reportname, docids=docids, converter=converter, context=context)
                 else:
                     # Particular report:
@@ -120,7 +120,14 @@ class ReportController(report.ReportController):
                     response = self.report_routes(reportname, converter=converter, context=context, **data)
 
                 report = request.env['ir.actions.report']._get_report_from_name(reportname)
-                filename = "{}_{}.{}".format(report.name, datetime.datetime.today().strftime('%Y-%m-%d'), extension)
+                # Get report extension
+                extension = report.jasper_output
+                # Get report model
+                model = report.model_id.model
+                # Search document name from given ID
+                doc_name = request.env[model].search([('id', '=', docids)]).name
+                filename = "{}_{}_{}.{}".format(report.name, doc_name,
+                                                datetime.datetime.today().strftime('%Y-%m-%d'), extension)
 
                 if docids:
                     ids = [int(x) for x in docids.split(",")]
