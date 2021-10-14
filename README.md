@@ -3,6 +3,10 @@
 This Module Gives The Features for creating Jasper Reports
 
 ##### Changelog
+14.0.0.1.3 - GNR
+- Use document name as filename
+- Export XLS in one page
+
 14.0.0.1.2 - GNR
 Improvement (with intention to print one report at a time)
 - Update Jasper Report Lib to 6.17
