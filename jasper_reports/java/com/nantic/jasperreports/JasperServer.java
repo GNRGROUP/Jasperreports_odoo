@@ -209,7 +209,7 @@ public class JasperServer {
             }
         }
 
-        System.out.println("JasperServer: Filling report...");
+        System.out.println("JasperServer: Filling report....");
 
         // Fill in report
         String language;
@@ -217,7 +217,7 @@ public class JasperServer {
             language = "";
         else
             language = report.getQuery().getLanguage();
-
+        System.out.println("JasperServer: Lang is " + language);
         if (language.equalsIgnoreCase("XPATH")) {
             // If available, use a CSV file because it's faster to process.
             // Otherwise we'll use an XML file.
@@ -283,7 +283,8 @@ public class JasperServer {
             // exporter.setParameter(JRXlsExporterParameter.IS_DETECT_CELL_TYPE,
             // Boolean.TRUE);
             exporter = new JRXlsExporter();
-            exporter.setParameter(JRXlsExporterParameter.IS_ONE_PAGE_PER_SHEET, Boolean.TRUE);
+            // exporter.setParameter(JRXlsExporterParameter.IS_ONE_PAGE_PER_SHEET,
+            // Boolean.TRUE);
             SimpleXlsReportConfiguration configuration = new SimpleXlsReportConfiguration();
             configuration.setRemoveEmptySpaceBetweenRows(true);
             configuration.setRemoveEmptySpaceBetweenColumns(true);
