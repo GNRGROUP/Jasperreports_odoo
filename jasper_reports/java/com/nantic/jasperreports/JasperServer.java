@@ -96,7 +96,8 @@ public class JasperServer {
         File jrxmlFile;
         File jasperFile;
 
-        System.setProperty("jasper.reports.compiler.class", "com.nantic.jasperreports.I18nGroovyCompiler");
+        // System.setProperty("jasper.reports.compiler.class",
+        // "com.nantic.jasperreports.I18nGroovyCompiler");
 
         jrxmlFile = new File(jrxmlPath);
         jasperFile = new File(jasperPath(jrxmlPath));
