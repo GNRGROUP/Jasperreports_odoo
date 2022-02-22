@@ -1,5 +1,5 @@
 #!/bin/bash
-
+JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 if [ -z "$JAVA_HOME" ]; then
 	directories="/usr/lib/jvm/java-1.8.0-openjdk-amd64/ /usr/lib/jvm/java-8-openjdk-amd64/ /usr/lib/jvm/java-8-openjdk-amd64/lib/tools.jar"
 	for d in $directories; do
