@@ -1,8 +1,12 @@
 # Jasper Report
 
-This Module Gives The Features for creating Jasper Reports
+This Module Gives The Features for creating Jasper Reports and Thai language support.
 
 ##### Changelog
+14.0.0.1.4 - GNR
+- Fix Connection Leakage
+- Include Thai Font (Sarabun)
+
 14.0.0.1.3 - GNR
 - Use document name as filename
 - Export XLS in one page
