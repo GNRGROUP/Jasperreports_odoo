@@ -97,7 +97,7 @@ public class JasperServer {
         File jasperFile;
 
         System.setProperty("jasper.reports.compiler.class",
-        "com.nantic.jasperreports.I18nGroovyCompiler");
+                "com.nantic.jasperreports.I18nGroovyCompiler");
 
         jrxmlFile = new File(jrxmlPath);
         jasperFile = new File(jasperPath(jrxmlPath));
@@ -235,8 +235,13 @@ public class JasperServer {
                 jasperPrint = JasperFillManager.fillReport(report, parameters, dataSource);
             }
         } else if (language.equalsIgnoreCase("SQL")) {
-            Connection connection = getConnection(connectionParameters);
-            jasperPrint = JasperFillManager.fillReport(report, parameters, connection);
+
+            try (Connection connection = getConnection(connectionParameters);) {
+                jasperPrint = JasperFillManager.fillReport(report, parameters, connection);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw e;
+            }
         } else {
             JREmptyDataSource dataSource = new JREmptyDataSource();
             jasperPrint = JasperFillManager.fillReport(report, parameters, dataSource);
