@@ -235,12 +235,22 @@ public class JasperServer {
                 jasperPrint = JasperFillManager.fillReport(report, parameters, dataSource);
             }
         } else if (language.equalsIgnoreCase("SQL")) {
-
-            try (Connection connection = getConnection(connectionParameters);) {
+            Connection connection = null;
+            try {
+                connection = getConnection(connectionParameters);
                 jasperPrint = JasperFillManager.fillReport(report, parameters, connection);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw e;
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.close();
+                        System.out.println("Closing connection");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         } else {
             JREmptyDataSource dataSource = new JREmptyDataSource();
