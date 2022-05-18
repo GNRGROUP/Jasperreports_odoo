@@ -129,7 +129,7 @@ public class JasperServer {
         try {
             return privateExecute(connectionParameters, jrxmlPath, outputPath, parameters);
         } catch (Exception exception) {
-            // exception.printStackTrace();
+            exception.printStackTrace(System.out);
             throw exception;
         }
     }
@@ -240,7 +240,7 @@ public class JasperServer {
                 connection = getConnection(connectionParameters);
                 jasperPrint = JasperFillManager.fillReport(report, parameters, connection);
             } catch (Exception e) {
-                e.printStackTrace();
+                e.printStackTrace(System.out);
                 throw e;
             } finally {
                 if (connection != null) {
