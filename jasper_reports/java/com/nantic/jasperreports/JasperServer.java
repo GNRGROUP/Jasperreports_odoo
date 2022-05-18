@@ -371,7 +371,8 @@ public class JasperServer {
             System.out.println("JasperServer: Started successfully.");
             System.out.println("JasperServer: Accepting requests. (Halt program to stop.)");
         } catch (Exception exception) {
-            exception.printStackTrace(System.out);
+            System.out.println("Jasper Server got exception");
+            exception.printStackTrace();
             System.err.println("Jasper Server: " + exception);
         }
     }
